@@ -1,0 +1,243 @@
+Implement a problem solver using the A* algorithm to solve the 8-puzzle problem.
+import heapq
+
+def h(s, goal):
+    d = 0
+    for i in range(9):
+        if s[i] != 0:
+            j = goal.index(s[i])
+            d += abs(i//3 - j//3) + abs(i%3 - j%3)
+    return d
+
+def astar(start, goal):
+    q = [(h(start, goal), 0, start)]
+    cost = {tuple(start): 0}
+    parent = {}
+
+    while q:
+        f, g, s = heapq.heappop(q)
+        s = tuple(s)
+
+        if g != cost[s]:
+            continue
+
+        if list(s) == goal:
+            path = [s]
+            while s in parent:
+                s = parent[s]
+                path.append(s)
+            for state in reversed(path):
+                print(state[:3])
+                print(state[3:6])
+                print(state[6:])
+                print()
+            print("Minimum moves:", len(path) - 1)
+            return
+
+        z = s.index(0)
+        for p in (z-3, z+3, z-1, z+1):
+            if 0 <= p < 9 and not (
+                abs(p-z) == 1 and p//3 != z//3
+            ):
+                t = list(s)
+                t[z], t[p] = t[p], t[z]
+                t = tuple(t)
+                ng = g + 1
+
+                if ng < cost.get(t, float('inf')):
+                    cost[t] = ng
+                    parent[t] = s
+                    heapq.heappush(q, (ng + h(t, goal), ng, t))
+
+    print("No solution found")
+
+start = list(map(int, input("Enter initial state: ").split()))
+goal = list(map(int, input("Enter goal state: ").split()))
+
+if sorted(start) != list(range(9)) or sorted(goal) != list(range(9)):
+    print("Enter numbers 0 to 8 exactly once in each state")
+else:
+    astar(start, goal)
+
+Implement a local search algorithm for solving travelling salesman problem (TSP). (hill climbing)
+
+n = int(input("Enter cities: "))
+d = [list(map(int, input().split())) for i in range(n)]
+def dist(p):
+return sum(d[p[i]][p[(i+1)%n]] for i in range(n))
+path = list(range(n))
+while True:
+best = path[:]
+for i in range(1, n):
+for j in range(i+1, n):
+new = path[:]
+new[i], new[j] = new[j], new[i]
+if dist(new) < dist(best):
+best = new
+if dist(best) >= dist(path):
+break
+path = best
+print("Path:", path + [path[0]])
+print("Distance:", dist(path))
+
+Develop a constraint satisfaction problem CSP solver for crypt arithmetic prob: SEND + MORE = MONEY.
+
+CSP – SEND + MORE = MONEY (Python)
+
+from itertools import permutations
+for p in permutations(range(10), 8):
+S, E, N, D, M, O, R, Y = p
+if S == 0 or M == 0:
+continue
+SEND = 1000*S + 100*E + 10*N + D
+MORE = 1000*M + 100*O + 10*R + E
+MONEY = 10000*M + 1000*O + 100*N + 10*E + Y
+if SEND + MORE == MONEY:
+print("S E N D M O R Y")
+print(S, E, N, D, M, O, R, Y)
+print(SEND, "+", MORE, "=", MONEY)
+break
+
+Develop a constraint satisfaction problem CSP solver for crypt arithmetic prob: TWO + TWO = FOUR.
+from itertools import permutations
+
+for p in permutations(range(10), 7):
+
+    T, W, O, F, U, R = p
+
+    if T == 0 or F == 0:
+        continue
+
+    TWO = 100*T + 10*W + O
+    FOUR = 1000*F + 100*O + 10*U + R
+
+    if TWO + TWO == FOUR:
+        print("T W O F U R")
+        print(T, W, O, F, U, R)
+        print(TWO, "+", TWO, "=", FOUR)
+        break
+Develop a constraint satisfaction problem CSP solver for map coloring.
+colors = ["Red", "Green", "Blue"]
+map = {
+    "A": ["B", "C"],
+    "B": ["A", "C"],
+    "C": ["A", "B"]
+}
+
+color = {}
+
+def solve(region):
+    if region == len(map):
+        return True
+
+    place = list(map.keys())[region]
+
+    for c in colors:
+        if all(color.get(n) != c for n in map[place]):
+            color[place] = c
+
+            if solve(region + 1):
+                return True
+
+            del color[place]
+
+    return False
+
+if solve(0):
+    print(color)
+else:
+    print("No solution")
+
+Implement gameplay with adversarial search using the minimax algorithm, example Tic-Tac-Toe or Chess.
+b = [" "] * 9
+def win(p):
+    lines = [(0,1,2),(3,4,5),(6,7,8),
+             (0,3,6),(1,4,7),(2,5,8),
+             (0,4,8),(2,4,6)]
+    return any(b[a] == b[c] == b[d] == p for a,c,d in lines)
+def minimax(p):
+    if win("O"): return 1
+    if win("X"): return -1
+    if " " not in b: return 0
+    scores = []
+    for i in range(9):
+        if b[i] == " ":
+            b[i] = p
+            scores.append(minimax("X" if p == "O" else "O"))
+            b[i] = " "
+    return max(scores) if p == "O" else min(scores)
+while True:
+    print(b[:3], "\n", b[3:6], "\n", b[6:])
+    if win("X") or win("O") or " " not in b: break
+    i = int(input("Your move (0-8): "))
+    if i not in range(9) or b[i] != " ":
+        print("Invalid move")
+        continue
+    b[i] = "X"
+    if win("X") or " " not in b: break
+    best = -999
+    for i in range(9):
+        if b[i] == " ":
+            b[i] = "O"
+            s = minimax("X")
+            b[i] = " "
+            if s > best: best, move = s, i
+    b[move] = "O"
+print(b[:3], "\n", b[3:6], "\n", b[6:])
+print("X wins" if win("X") else "O wins" if win("O") else "Draw")
+
+
+
+
+Implement a chat bot using techniques of Natural Language Processing.
+
+msg = input("You: ").lower()
+    words = wordpunct_tokenize(msg)
+    if "hello" in words or "hi" in words:
+        print("Bot: Hello! How are you?")
+    elif "name" in words:
+        print("Bot: I am an NLP Chatbot.")
+    elif "how" in words and "you" in words:
+        print("Bot: I am fine!")
+    elif "bye" in words:
+        print("Bot: Goodbye!")
+        break
+    else:
+print(“Bot:Sorry, I don’t understand.”)
+
+Implement and Understand working of Neural network for a real-life application : Face Recognition with Python
+import cv2
+img = cv2.imread("img.jpg")
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+face = cv2.CascadeClassifier(cv2.data.haarcascades +
+                             "haarcascade_frontalface_default.xml")
+faces = face.detectMultiScale(gray)
+for x, y, w, h in faces:
+    cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
+cv2.imshow("Faces", img)
+cv2.waitKey(0)
+
+
+Title: Write a program to develop mini-expert system using Prolog
+
+% Facts
+has_fur(dog).
+barks(dog).
+has_fur(cat).
+meows(cat).
+has_wings(parrot).
+can_fly(parrot).
+lives_in_water(fish).
+has_fins(fish).
+% Rules
+animal(X) :- has_fur(X), barks(X).
+animal(X) :- has_fur(X), meows(X).
+animal(X) :- has_wings(X), can_fly(X).
+animal(X) :- lives_in_water(X), has_fins(X).
+% Main rule
+identify :-
+    write('Enter animal name: '),
+    read(X),
+    animal(X),
+    write('Animal identified: '),
+    write(X).
